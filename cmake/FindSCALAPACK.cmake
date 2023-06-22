@@ -123,6 +123,7 @@ endif()
 endfunction(scalapack_check)
 
 
+#===============================
 function(scalapack_mkl scalapack_name blacs_name)
 
 find_library(SCALAPACK_LIBRARY
@@ -184,7 +185,42 @@ set(SCALAPACK_MKL64_FOUND ${SCALAPACK_MKL64_FOUND} PARENT_SCOPE)
 
 endfunction(scalapack_mkl)
 
+#===============================
+function(scalapack_aocl)
 
+find_library(SCALAPACK_LIBRARY
+  NAMES libscalapack scalapack
+  HINTS ${USER_PROVIDED_SCALAPACK_DIR}
+  PATH_SUFFIXES lib lib64
+  NO_DEFAULT_PATH
+  DOC "SCALAPACK library"
+)
+
+endfunction(scalapack_aocl)
+
+# User provided ScaLAPACK
+#===============================
+function(scalapack_user)
+
+find_library(SCALAPACK_LIBRARY
+  NAMES libscalapack scalapack
+  HINTS ${USER_PROVIDED_SCALAPACK_DIR}
+  PATH_SUFFIXES lib lib64
+  NO_DEFAULT_PATH
+  DOC "SCALAPACK library"
+)
+
+find_library(BLACS_LIBRARY
+  NAMES libblacs blacs
+  HINTS ${USER_PROVIDED_SCALAPACK_DIR}
+  PATH_SUFFIXES lib lib64
+  NO_DEFAULT_PATH
+  DOC "BLACS library"
+)
+
+endfunction(scalapack_user)
+
+#===============================
 function(scalapack_lib)
 
 if(BUILD_SHARED_LIBS)
@@ -192,13 +228,13 @@ if(BUILD_SHARED_LIBS)
 else()
   set(_s static)
 endif()
-list(APPEND _s openmpi/lib mpich/lib)
+list(APPEND _s openmpi/lib mpich/lib lib)
 
 find_library(SCALAPACK_LIBRARY
-NAMES scalapack scalapack-openmpi scalapack-mpich
-NAMES_PER_DIR
-PATH_SUFFIXES ${_s}
-DOC "SCALAPACK library"
+  NAMES scalapack scalapack-openmpi scalapack-mpich libscalapack
+  NAMES_PER_DIR
+  PATH_SUFFIXES ${_s}
+  DOC "SCALAPACK library"
 )
 
 # some systems have libblacs as a separate file, instead of being subsumed in libscalapack.
@@ -257,6 +293,10 @@ if(MKL IN_LIST SCALAPACK_FIND_COMPONENTS OR MKL64 IN_LIST SCALAPACK_FIND_COMPONE
     scalapack_mkl(mkl_scalapack_${_mkl_bitflag}lp64 mkl_blacs_intelmpi_${_mkl_bitflag}lp64)
   endif()
 
+elseif(use_scalapack_aocl)
+  scalapack_aocl()
+elseif(use_scalapack_userprovided)
+  scalapack_user()
 elseif(scalapack_cray)
   # Cray PE has Scalapack build into LibSci. Use Cray compiler wrapper.
 else()

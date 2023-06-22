@@ -135,8 +135,8 @@ set(LAPACK_LIBRARY ${LAPACK_LIBRARY} PARENT_SCOPE)
 
 endfunction(atlas_libs)
 
+# Netlib
 #=======================
-
 function(netlib_libs)
 
 if(LAPACK95 IN_LIST LAPACK_FIND_COMPONENTS)
@@ -216,25 +216,33 @@ set(LAPACK_LIBRARY ${LAPACK_LIBRARY} PARENT_SCOPE)
 
 endfunction(netlib_libs)
 
+# OpenBLAS
 #===============================
 function(openblas_libs)
 
 find_library(LAPACK_LIBRARY
-NAMES lapack
-PATH_SUFFIXES openblas
-DOC "LAPACK library"
+  NAMES libopenblas lapack openblas blas
+  PATH_SUFFIXES openblas lib lib64
+  DOC "LAPACK library"
+  NO_DEFAULT_PATH
+  HINTS ${USER_PROVIDED_BLAS_DIR}
 )
 
 find_library(BLAS_LIBRARY
-NAMES openblas blas
-NAMES_PER_DIR
-PATH_SUFFIXES openblas
-DOC "BLAS library"
+  NAMES libopenblas openblas blas
+  NAMES_PER_DIR
+  PATH_SUFFIXES openblas lib lib64
+  DOC "BLAS library"
+  NO_DEFAULT_PATH
+  HINTS ${USER_PROVIDED_BLAS_DIR}
 )
 
 find_path(LAPACK_INCLUDE_DIR
-NAMES cblas-openblas.h cblas.h f77blas.h openblas_config.h
-DOC "LAPACK include directory"
+  NAMES cblas-openblas.h cblas.h f77blas.h openblas_config.h
+  PATH_SUFFIXES openblas include include/openblas
+  DOC "LAPACK include directory"
+  NO_DEFAULT_PATH
+  HINTS ${USER_PROVIDED_BLAS_DIR}
 )
 
 if(NOT (LAPACK_LIBRARY AND BLAS_LIBRARY))
@@ -251,6 +259,8 @@ set(LAPACK_LIBRARY ${LAPACK_LIBRARY} PARENT_SCOPE)
 endfunction(openblas_libs)
 
 
+# AOCL
+#===============================
 function(aocl_libs)
 
 set(_names flame)
@@ -263,10 +273,12 @@ if(WIN32)
 endif()
 
 find_library(LAPACK_LIBRARY
-NAMES ${_names}
-NAMES_PER_DIR
-PATH_SUFFIXES LP64
-DOC "LAPACK Flame library"
+  NAMES ${_names}
+  NAMES_PER_DIR
+  PATH_SUFFIXES LP64 lib lib/LP64
+  DOC "LAPACK Flame library"
+  NO_DEFAULT_PATH
+  HINTS ${USER_PROVIDED_LIBFLAME_DIR}
 )
 
 set(_names blis-mt blis)
@@ -279,10 +291,12 @@ if(WIN32)
 endif()
 
 find_library(BLAS_LIBRARY
-NAMES ${_names}
-NAMES_PER_DIR
-PATH_SUFFIXES LP64
-DOC "BLAS Blis library"
+  NAMES ${_names}
+  NAMES_PER_DIR
+  PATH_SUFFIXES LP64 lib lib/LP64
+  NO_DEFAULT_PATH
+  DOC "BLAS Blis library"
+  HINTS ${USER_PROVIDED_BLIS_DIR}
 )
 
 if(NOT (LAPACK_LIBRARY AND BLAS_LIBRARY))
@@ -290,15 +304,19 @@ if(NOT (LAPACK_LIBRARY AND BLAS_LIBRARY))
 endif()
 
 find_path(LAPACK_INCLUDE_DIR
-NAMES FLAME.h
-PATH_SUFFIXES LP64
-DOC "Flame header"
+  NAMES FLAME.h
+  PATH_SUFFIXES LP64 include include/LP64
+  DOC "Flame header"
+  NO_DEFAULT_PATH
+  HINTS ${USER_PROVIDED_LIBFLAME_DIR}
 )
 
 find_path(BLAS_INCLUDE_DIR
-NAMES blis.h
-PATH_SUFFIXES LP64
-DOC "Blis header"
+  NAMES blis.h
+  PATH_SUFFIXES LP64 include include/LP64
+  DOC "Blis header"
+  NO_DEFAULT_PATH
+  HINTS ${USER_PROVIDED_BLIS_DIR}
 )
 
 if(NOT (LAPACK_INCLUDE_DIR AND BLAS_INCLUDE_DIR))
@@ -312,8 +330,8 @@ set(LAPACK_INCLUDE_DIR ${LAPACK_INCLUDE_DIR} ${BLAS_INCLUDE_DIR} PARENT_SCOPE)
 
 endfunction(aocl_libs)
 
+# MKL
 #===============================
-
 function(find_mkl_libs)
 # https://software.intel.com/en-us/articles/intel-mkl-link-line-advisor
 
@@ -378,6 +396,8 @@ if(NOT (lapack_cray
   OR AOCL IN_LIST LAPACK_FIND_COMPONENTS))
   if(DEFINED ENV{MKLROOT})
     list(APPEND LAPACK_FIND_COMPONENTS MKL)
+  elseif(use_lapack_userprovided)
+    # do nothing
   else()
     list(APPEND LAPACK_FIND_COMPONENTS Netlib)
   endif()
@@ -471,14 +491,14 @@ if(MKL IN_LIST LAPACK_FIND_COMPONENTS OR MKL64 IN_LIST LAPACK_FIND_COMPONENTS)
     endif()
   endif()
 
+elseif(use_lapack_aocl)
+  aocl_libs()
+elseif(use_lapack_userprovided)
+  openblas_libs()
 elseif(Atlas IN_LIST LAPACK_FIND_COMPONENTS)
   atlas_libs()
 elseif(Netlib IN_LIST LAPACK_FIND_COMPONENTS)
   netlib_libs()
-elseif(OpenBLAS IN_LIST LAPACK_FIND_COMPONENTS)
-  openblas_libs()
-elseif(AOCL IN_LIST LAPACK_FIND_COMPONENTS)
-  aocl_libs()
 elseif(lapack_cray)
   # LAPACK is implicitly part of Cray PE LibSci, use Cray compiler wrapper.
 endif()

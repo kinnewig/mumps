@@ -2,6 +2,7 @@
 
 include(CheckFortranSourceCompiles)
 
+# MKL
 if(NOT DEFINED LAPACK_COMPONENTS AND DEFINED ENV{MKLROOT})
   set(LAPACK_COMPONENTS MKL)
 endif()
@@ -13,6 +14,23 @@ if(MKL IN_LIST LAPACK_COMPONENTS)
   if(openmp)
     list(APPEND LAPACK_COMPONENTS OpenMP)
   endif()
+endif()
+
+# AOCL
+if(NOT DEFINED AOCL)
+  set(AOCL false)
+endif()
+if(AOCL)
+  set(use_lapack_aocl true)
+else()
+  set(use_lapack_aocl false)
+endif()
+
+# OpenBlas
+if(NOT AOCL AND DEFINED USER_PROVIDED_BLAS_DIR)
+  set(use_lapack_userprovided true)
+else()
+  set(use_lapack_userprovided false)
 endif()
 
 if(find_static)
