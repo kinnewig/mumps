@@ -39,7 +39,7 @@ if(parallel IN_LIST METIS_FIND_COMPONENTS)
 endif()
 
 find_library(METIS_LIBRARY
-  NAMES metis
+  NAMES metis libmetis
   PATH_SUFFIXES METIS libmetis lib
   DOC "METIS library"
   HINTS ${USER_PROVIDED_METIS_DIR}
