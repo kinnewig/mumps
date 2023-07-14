@@ -60,6 +60,23 @@ if(NOT urls)
   ")
 endif()
 
+# Add a mirror if provided
+# TODO: Add to README, that with MIRROR, MIRROR_NAME and MIRROR_PACKING a mirror for upstream mumps can be provided.
+if(DEFINED MIRROR)
+  # Set the mirror name if not defined
+  if(NOT DEFINED MIRROR_NAME)
+    set(MIRROR_NAME "MUMPS_${MUMPS_UPSTREAM_VERSION}")
+  endif()
+
+  # Set the mirror packing 
+  if(NOT DEFNIED MIRROR_PACKING)
+    set(MIRROR_PACKING ".tar.gz")
+  endif()
+
+  # Add the download url
+  list(APPEND urls ${MIRROR}${MIRROR_NAME}${MIRROR_PACKING})
+endif()
+
 message(DEBUG "MUMPS archive source URLs: ${urls}")
 
 set(FETCHCONTENT_QUIET no)
