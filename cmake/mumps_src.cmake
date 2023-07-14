@@ -69,7 +69,7 @@ if(DEFINED MIRROR)
   endif()
 
   # Set the mirror packing 
-  if(NOT DEFNIED MIRROR_PACKING)
+  if(NOT DEFINED MIRROR_PACKING)
     set(MIRROR_PACKING ".tar.gz")
   endif()
 
