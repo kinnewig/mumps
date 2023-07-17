@@ -1,7 +1,9 @@
 # MUMPS options
 
 By default PORD ordering is used.
-For large systems, [Scotch and METIS ordering](./Readme_ordering.md) can be used.
+For large matrix systems,
+[Scotch, METIS, parMETIS ordering](./Readme_ordering.md)
+can be used for possible performance enhancements.
 
 ## Precision
 
@@ -16,7 +18,11 @@ option(BUILD_COMPLEX16 "Build double precision complex")
 
 ## MPI
 
-For systems where MPI, BLACS and SCALAPACK are not available, or where non-parallel execution is suitable, the default parallel can be disabled at CMake configure time by option `cmake -Dparallel=false`.
+For systems where MPI, BLACS and SCALAPACK are not available, or where non-parallel execution is suitable, the default parallel can be disabled at CMake configure time by option:
+
+```sh
+cmake -Dparallel=false
+```
 
 ## MUMPS version selection
 
@@ -24,22 +30,11 @@ The MUMPS version defaults to a recent release.
 For reproducibility, benchmarking and other purposes, one may select the version of MUMPS to build like:
 
 ```sh
-cmake -B build -DMUMPS_UPSTREAM_VERSION=5.6.0
+cmake -B build -DMUMPS_UPSTREAM_VERSION=5.6.1
 ```
 
 The MUMPS_UPSTREAM_VERSION works for MUMPS versions in
 [cmake/libraries.json](./cmake/libraries.json).
-
-
-
-## GEMMT symmetric matrix-matrix multiplication
-
-For MUMPS &ge; 5.2.0, GEMMT symmetric matrix-matrix multiplication is recommended by the MUMPS User Guide if available.
-By default GEMMT is ON, but may be disabed like:
-
-```sh
-cmake -Dgemmt=off
-```
 
 ## Matlab / GNU Octave
 

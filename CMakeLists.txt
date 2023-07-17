@@ -7,7 +7,7 @@ endif()
 
 project(MUMPS
 LANGUAGES C Fortran
-VERSION 5.6.0.0
+VERSION 5.6.1.0
 DESCRIPTION "Sparse direct parallel solver"
 HOMEPAGE_URL "http://mumps-solver.org/"
 )
@@ -20,7 +20,7 @@ else()
 endif()
 
 if(NOT MUMPS_UPSTREAM_VERSION)
-  set(MUMPS_UPSTREAM_VERSION 5.6.0)
+  set(MUMPS_UPSTREAM_VERSION 5.6.1)
 endif()
 
 if(MSVC AND BUILD_SHARED_LIBS)
@@ -47,7 +47,7 @@ if(parallel)
   set(NUMERIC_LIBS ${SCALAPACK_LIBRARIES} ${LAPACK_LIBRARIES})
 
   if(find_static AND NOT WIN32 AND
-    MKL IN_LIST LAPACK_COMPONENTS AND
+    MKL IN_LIST LAPACK_VENDOR AND
     CMAKE_VERSION VERSION_GREATER_EQUAL 3.24
     )
     set(NUMERIC_LIBS $<LINK_GROUP:RESCAN,${NUMERIC_LIBS}>)
@@ -67,12 +67,18 @@ endif()
 
 set(ORDERING_LIBS)
 set(ORDERING_DEFS pord)
+
 if(scotch)
   find_package(Scotch COMPONENTS ESMUMPS REQUIRED)
   list(APPEND ORDERING_DEFS scotch)
   list(APPEND ORDERING_LIBS Scotch::Scotch)
 endif()
-if(metis)
+
+if(parmetis)
+  find_package(METIS REQUIRED COMPONENTS parallel)
+  list(APPEND ORDERING_DEFS parmetis metis)
+  list(APPEND ORDERING_LIBS METIS::METIS)
+elseif(metis)
   find_package(METIS REQUIRED)
   list(APPEND ORDERING_DEFS metis)
   list(APPEND ORDERING_LIBS METIS::METIS)
@@ -80,6 +86,7 @@ if(metis)
     list(APPEND METIS_FIND_COMPONENTS parallel)
   endif()
 endif()
+
 list(APPEND ORDERING_LIBS pord)
 
 install(FILES

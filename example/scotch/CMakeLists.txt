@@ -17,7 +17,10 @@ if(NOT PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 endif()
 
 find_package(Threads)
+find_package(MPI REQUIRED COMPONENTS C Fortran)
 find_package(Scotch REQUIRED COMPONENTS ESMUMPS)
+find_package(LAPACK REQUIRED)
+find_package(SCALAPACK REQUIRED)
 find_package(MUMPS REQUIRED COMPONENTS Scotch)
 
 function(precision_ex a)

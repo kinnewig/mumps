@@ -29,8 +29,9 @@ jobs:
         metis: [false]
         int64: [true, false]
         shared: [true, false]
-        img: [ {os: ubuntu-latest, cmd: sudo apt update && sudo apt install --no-install-recommends ninja-build libopenmpi-dev openmpi-bin liblapack-dev libscalapack-mpi-dev},
-               {os: macos-latest, cmd: brew install ninja lapack scalapack open-mpi && brew reinstall gcc}
+        lapack_vendor: [""]
+        img: [ {os: ubuntu-latest, cmd: sudo apt update && sudo apt install --no-install-recommends ninja-build libopenmpi-dev openmpi-bin libscalapack-mpi-dev},
+               {os: macos-latest, cmd: brew install ninja scalapack open-mpi && brew reinstall gcc}
         ]
         exclude:
           - shared: true
@@ -42,11 +43,15 @@ jobs:
           - scotch: true
             shared: false
             int64: false
-            img: {os: ubuntu-latest, cmd: sudo apt update && sudo apt install --no-install-recommends ninja-build libopenmpi-dev openmpi-bin liblapack-dev libscalapack-mpi-dev}
+            img: {os: ubuntu-latest, cmd: sudo apt update && sudo apt install --no-install-recommends ninja-build libopenmpi-dev openmpi-bin libscalapack-mpi-dev}
           - metis: true
             shared: false
             int64: false
-            img: {os: ubuntu-latest, cmd: sudo apt update && sudo apt install --no-install-recommends ninja-build libopenmpi-dev openmpi-bin liblapack-dev libscalapack-mpi-dev}
+            img: {os: ubuntu-latest, cmd: sudo apt update && sudo apt install --no-install-recommends ninja-build libopenmpi-dev openmpi-bin libscalapack-mpi-dev}
+          - lapack_vendor: "OpenBLAS"
+            shared: false
+            int64: false
+            img: {os: ubuntu-latest, cmd: sudo apt update && sudo apt install --no-install-recommends ninja-build libopenmpi-dev openmpi-bin libopenblas-dev libscalapack-mpi-dev}
 
     runs-on: ${{ matrix.img.os }}
 
@@ -73,6 +78,7 @@ jobs:
         -DCMAKE_INSTALL_PREFIX=${{ runner.temp }}
         -Dscotch:BOOL=${{ matrix.scotch }}
         -Dmetis:BOOL=${{ matrix.metis }}
+        -DLAPACK_VENDOR=${{ matrix.lapack_vendor }}
         -DBUILD_SHARED_LIBS:BOOL=${{ matrix.shared }}
         -Dintsize64:BOOL=${{ matrix.int64 }}
 
@@ -101,7 +107,7 @@ jobs:
     - name: print config log
       if: ${{ failure() && matrix.scotch }}
       run: |
-        cat example/scotch/build/CMakeFiles/CMakeError.log
+        cat example/scotch/build/CMakeFiles/CMakeConfigureLog.yaml
 
     - name: METIS example
       if: ${{ matrix.metis }}
@@ -113,42 +119,4 @@ jobs:
     - name: print config log
       if: ${{ failure() && matrix.metis }}
       run: |
-        cat example/metis/build/CMakeFiles/CMakeError.log
-
-
-
-  linux-build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Install prereqs
-      run: |
-        sudo apt update
-        sudo apt install --no-install-recommends ninja-build libopenmpi-dev openmpi-bin
-
-    - name: configure lapack, scalapack
-      run: >-
-        cmake -S scripts -B scripts/build
-        -DBUILD_SINGLE:BOOL=false -DBUILD_DOUBLE:BOOL=true -DBUILD_COMPLEX:BOOL=false -DBUILD_COMPLEX16:BOOL=false
-        --install-prefix=${{ runner.temp }}
-
-    - name: build,install lapack, scalapack
-      run: cmake --build scripts/build -t scalapack
-
-    - name: configure
-      run: cmake --preset default --install-prefix=${{ runner.temp }} -DCMAKE_PREFIX_PATH:PATH=${{ runner.temp }}
-
-    - name: build, test release
-      run: cmake --workflow --preset default
-
-    - run: cmake --install build
-
-# builds fine on local machine
-    # - name: configure example
-    #   run: cmake -S example -B example/build -DCMAKE_PREFIX_PATH:PATH=${{ runner.temp }} -DBUILD_SHARED_LIBS:BOOL=${{ matrix.shared }}
-    # - name: build example
-    #   run: cmake --build example/build
-    # - name: test example
-    #   run: ctest --test-dir example/build -V
+        cat example/metis/build/CMakeFiles/CMakeConfigureLog.yaml
